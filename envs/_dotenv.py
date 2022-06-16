@@ -2,12 +2,11 @@ import os
 
 from dotenv import dotenv_values
 
-ENV_PATH = os.path.dirname(os.path.realpath(__file__))
-
 
 def path_to_file(file):
+    env_path = os.path.dirname(os.path.realpath(__file__))
     path = None
-    for root, dirs, files in os.walk(ENV_PATH):
+    for root, dirs, files in os.walk(env_path):
         for name in files:
             if name == file:
                 path = (os.path.abspath(os.path.join(root, name)))
@@ -15,17 +14,21 @@ def path_to_file(file):
     return path
 
 
-__env_type = dotenv_values(path_to_file('env.env'))
-__env_type = __env_type['ENV']
+def get_env_values() -> dict:
+    default_env = dotenv_values(path_to_file('env.env'))
+    env_type = default_env['ENV']
 
-if __env_type == 'PROD':
-    print('============ ENV PROD ===========')
-    ENV = dotenv_values(path_to_file('.env.prod'))
-elif __env_type == 'HOMOLOG':
-    print('============ ENV HOMOLOG ===========')
-    ENV = dotenv_values(path_to_file('.env.homolog'))
-elif __env_type == 'DEV':
-    print('============ ENV DEV ===========')
-    ENV = dotenv_values(path_to_file('.env.dev'))
+    if env_type == 'PROD':
+        print('============ ENV PROD ===========')
+        env_values = dotenv_values(path_to_file('.env.prod'))
+    elif env_type == 'HOMOLOG':
+        print('============ ENV HOMOLOG ===========')
+        env_values = dotenv_values(path_to_file('.env.homolog'))
+    elif env_type == 'DEV':
+        print('============ ENV DEV ===========')
+        env_values = dotenv_values(path_to_file('.env.dev'))
+    return env_values
 
-print(ENV)
+
+ENV = get_env_values()
+print(ENV['DB_HOST'])
