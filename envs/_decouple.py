@@ -10,7 +10,12 @@ DB_HOST_DEFAULT = config("DB_HOST_WRONG", default='mysql_server_default')
 VAR_BOOL = config("ENABLE", cast=bool)
 VAR_ALL = config("ALL", default='1', cast=int)
 
+PYTHONPATH = config("PYTHONPATH")
+PROCESSOR_ARCHITECTURE = config("PROCESSOR_ARCHITECTURE")
+
 print(DB_HOST)
 print(DB_HOST_DEFAULT)
 print(VAR_BOOL)
-print(VAR_ALL)
+
+print(PYTHONPATH)
+print(PROCESSOR_ARCHITECTURE)
