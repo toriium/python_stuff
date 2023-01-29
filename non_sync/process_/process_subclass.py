@@ -19,9 +19,6 @@ class WorkerProcess(Process):
         self.function(*self.args, **self.kwargs)
 
 
-
-
-
 if __name__ == '__main__':
     processes = []
     workers = [WorkerProcess(name=f'Worker[{c}]', function=long_func, args=(c,))
@@ -30,4 +27,3 @@ if __name__ == '__main__':
     [w.start() for w in workers]
 
     [w.join() for w in workers]
-

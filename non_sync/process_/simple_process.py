@@ -1,7 +1,7 @@
 from multiprocessing import Process
 
 import time
-from util import time_execution, long_func
+from non_sync.util import time_execution, long_func
 
 await_list = []
 
