@@ -4,7 +4,7 @@ from threading import Thread
 from typing import Callable
 
 
-class ParserQueue:
+class WorkerQueue:
     __queue = Queue()
 
     @classmethod
@@ -30,14 +30,18 @@ def target_fun(name: int):
 
 
 class WorkerQueueManager:
-    def __init__(self, qtd_threads: int):
-        self.qtd_threads = qtd_threads
+    def __init__(self, queue_name: str, target: Callable, qtd_workers: int):
+        self.queue_name = queue_name
+        self.target = target
+        self.qtd_workers = qtd_workers
         self.workers = None
+        self.queue = WorkerQueue()
         self.must_stop_workers = False
 
-    def start_workers(self, target: Callable):
-        self.workers = [ConsumerQueueWorker(name=f'Worker[{c}]', worker_queue_manager=self, target=target) for c in
-                        range(4)]
+    def start_workers(self):
+        self.workers = [
+            ConsumerQueueWorker(worker_name=f'Worker[{c}]', worker_queue_manager=self)
+            for c in range(self.qtd_workers)]
         [w.start() for w in self.workers]
 
     def stop_workers(self):
@@ -46,36 +50,38 @@ class WorkerQueueManager:
 
 
 class ConsumerQueueWorker(Thread):
-    def __init__(self, name: str, worker_queue_manager: WorkerQueueManager, target: Callable):
+    def __init__(self, worker_name: str, worker_queue_manager: WorkerQueueManager):
         Thread.__init__(self)
-        self.name = name
+        self.worker_name = worker_name
+        self.queue_name = worker_queue_manager.queue_name
         self.worker_queue_manager = worker_queue_manager
-        self.target = target
+        self.queue = worker_queue_manager.queue
+        self.target = worker_queue_manager.target
 
-        print(f'Created worker {self.name}')
+        print(f'Created worker {self.worker_name} for queue {self.queue_name}')
 
     def run(self):
         while True:
-            if ParserQueue.is_empty():
+            if self.queue.is_empty():
                 if self.worker_queue_manager.must_stop_workers:
                     break
                 time.sleep(0.2)
                 continue
 
-            crawler_response = ParserQueue.get()
-            if not crawler_response:
+            next_call = self.queue.get()
+            if not next_call:
                 continue
 
             try:
-                self.target(crawler_response)
+                self.target(next_call)
             except Exception as error:
                 print(error)
 
 
 if __name__ == '__main__':
-    manager = WorkerQueueManager(4)
-    manager.start_workers(target=target_fun)
+    manager = WorkerQueueManager(queue_name='target_fun_Queue', target=target_fun, qtd_workers=4)
+    manager.start_workers()
     for v in range(10):
-        ParserQueue.put(v)
+        manager.queue.put(v)
     print('put all items')
     manager.stop_workers()
